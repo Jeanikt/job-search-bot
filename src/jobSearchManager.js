@@ -4,6 +4,7 @@ const nerdin = require('./jobSearchers/nerdin');
 const emailSender = require('./emailSender');
 const jobCache = require('./jobCache');
 const { filterJobs } = require('./jobFilter');
+const glassdoor = require('./jobSearchers/glassdoor');
 
 async function runJobSearch(filters = {}) {
   try {
@@ -19,8 +20,11 @@ async function runJobSearch(filters = {}) {
     const nerdinJobs = await nerdin.searchJobs();
     console.log(`Encontradas ${nerdinJobs.length} vagas no Nerdin`);
 
-    
-    const allJobs = [...indeedJobs, ...linkedinJobs, ...nerdinJobs];
+    const glassdoorJobs = await glassdoor.searchJobs();
+    console.log(`Encontradas ${glassdoorJobs.length} vagas no Glassdor`);
+
+
+const allJobs = [...indeedJobs, ...linkedinJobs, ...nerdinJobs, ...glassdoorJobs];
     let filteredJobs = filterJobs(allJobs, filters);
 
     console.log(`Total de vagas encontradas: ${allJobs.length}`);
