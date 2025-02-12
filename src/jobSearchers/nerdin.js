@@ -7,10 +7,10 @@ async function searchJobs() {
   let allJobs = [];
 
   try {
-    for (const term of searchTerms) {
-      console.log(`Searching Nerdin for: ${term}`);
-      const encodedTerm = encodeURIComponent(term);
-      await page.goto(`https://nerdin.com.br/vagas?q=${encodedTerm}`);
+for (const term of searchTerms) {
+    console.log(`Searching Nerdin for: ${term}`);
+    const encodedTerm = encodeURIComponent(term);
+    await page.goto(`https://nerdin.com.br/vagas?q=${encodedTerm}&remote=true`);
       await page.waitForSelector('.job-list');
       
       const jobListings = await page.$$('.job-list .job-item');

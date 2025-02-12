@@ -28,5 +28,19 @@ module.exports = [
   "Desenvolvedor de Blockchain",
   "Desenvolvedor de Segurança",
   "Desenvolvedor de Banco de Dados",
-  "Desenvolvedor QA"
+  "Desenvolvedor QA",
+  "Desenvolvedor Remoto",
+  "Desenvolvedor Home Office",
+  "Programador Remoto",
+  "Engenheiro de Software Remoto",
+  "Desenvolvedor Full Stack Remoto",
+  "Desenvolvedor Backend Home Office",
+  "Desenvolvedor Frontend Remoto",
+  "Desenvolvedor React Remoto",
+  "Desenvolvedor Node.js Home Office",
+  "Desenvolvedor Python Remoto",
+  "Desenvolvedor Java Home Office",
+  "Analista de Sistemas Remoto",
+  "DevOps Remoto",
+  "QA Remoto"
 ];

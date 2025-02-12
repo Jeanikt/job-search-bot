@@ -8,9 +8,9 @@ async function searchJobs() {
 
   try {
     for (const term of searchTerms) {
-      console.log(`Searching Indeed for: ${term}`);
-      const encodedTerm = encodeURIComponent(term);
-      await page.goto(`https://www.indeed.com/jobs?q=${encodedTerm}&l=`);
+    console.log(`Searching Indeed for: ${term}`);
+    const encodedTerm = encodeURIComponent(term);
+    await page.goto(`https://br.indeed.com/jobs?q=${encodedTerm}&l=Brasil&sc=0kf%3Attr(DSQF7)%3B`);
       
       const jobListings = await page.$$('.jobsearch-ResultsList > li');
 

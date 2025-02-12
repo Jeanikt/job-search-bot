@@ -7,10 +7,10 @@ async function searchJobs() {
   let allJobs = [];
 
   try {
-    for (const term of searchTerms) {
-      console.log(`Searching LinkedIn for: ${term}`);
-      const encodedTerm = encodeURIComponent(term);
-      await page.goto(`https://www.linkedin.com/jobs/search/?keywords=${encodedTerm}`);
+for (const term of searchTerms) {
+    console.log(`Searching LinkedIn for: ${term}`);
+    const encodedTerm = encodeURIComponent(term);
+    await page.goto(`https://www.linkedin.com/jobs/search/?keywords=${encodedTerm}&location=Brasil&f_WT=2`);
       await page.waitForSelector('.jobs-search__results-list');
       
       const jobListings = await page.$$('.jobs-search__results-list > li');
