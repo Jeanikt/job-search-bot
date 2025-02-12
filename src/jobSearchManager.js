@@ -3,10 +3,12 @@ const linkedin = require('./jobSearchers/linkedin');
 const nerdin = require('./jobSearchers/nerdin');
 const emailSender = require('./emailSender');
 const jobCache = require('./jobCache');
+const { filterJobs } = require('./jobFilter');
 
-async function runJobSearch() {
+async function runJobSearch(filters = {}) {
   try {
     console.log('Iniciando busca de vagas...');
+
     
     const indeedJobs = await indeed.searchJobs();
     console.log(`Encontradas ${indeedJobs.length} vagas no Indeed`);
@@ -17,12 +19,17 @@ async function runJobSearch() {
     const nerdinJobs = await nerdin.searchJobs();
     console.log(`Encontradas ${nerdinJobs.length} vagas no Nerdin`);
 
+    
     const allJobs = [...indeedJobs, ...linkedinJobs, ...nerdinJobs];
+    let filteredJobs = filterJobs(allJobs, filters);
+
+    console.log(`Total de vagas encontradas: ${allJobs.length}`);
+    console.log(`Vagas após aplicação de filtros: ${filteredJobs.length}`);
     console.log(`Total de vagas encontradas: ${allJobs.length}`);
 
     const newJobs = [];
 
-    for (const job of allJobs) {
+    for (const job of filteredJobs) {
       if (await jobCache.isJobNew(job.id)) {
         newJobs.push(job);
         await jobCache.markJobAsSeen(job.id);
