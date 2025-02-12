@@ -1,17 +1,14 @@
 {
   "name": "job-search-bot",
   "version": "1.0.0",
-  "description": "",
+  "description": "Bot de busca de vagas de desenvolvedor",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "nodemailer": "^6.10.0",
-    "puppeteer": "^24.2.0"
+    "dotenv": "^10.0.0",
+    "nodemailer": "^6.7.2",
+    "puppeteer": "^13.0.1"
   }
 }
