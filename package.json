@@ -4,7 +4,8 @@
   "description": "Bot de busca de vagas de desenvolvedor",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js",
+    "bot": "node index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
