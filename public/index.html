@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerenciador de Vagas</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        padding: 20px;
+      }
+      h1 {
+        color: #333;
+      }
+      #filters {
+        margin-bottom: 20px;
+      }
+      #jobList {
+        list-style-type: none;
+        padding: 0;
+      }
+      .job-item {
+        background: #f4f4f4;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 5px;
+      }
+      .job-title {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Gerenciador de Vagas</h1>
+    <div id="filters">
+      <input type="text" id="titleFilter" placeholder="Filtrar por título" />
+      <input type="text" id="companyFilter" placeholder="Filtrar por empresa" />
+      <input
+        type="text"
+        id="locationFilter"
+        placeholder="Filtrar por localização"
+      />
+      <label for="sourceFilter">Filtrar por fonte</label>
+      <select id="sourceFilter">
+        <option value="">Todas as fontes</option>
+        <option value="Indeed">Indeed</option>
+        <option value="LinkedIn">LinkedIn</option>
+        <option value="Nerdin">Nerdin</option>
+        <option value="Glassdoor">Glassdoor</option>
+      </select>
+
+      <button onclick="applyFilters()">Aplicar Filtros</button>
+    </div>
+    <ul id="jobList"></ul>
+
+    <script>
+      function applyFilters() {
+        const title = document.getElementById("titleFilter").value;
+        const company = document.getElementById("companyFilter").value;
+        const location = document.getElementById("locationFilter").value;
+        const source = document.getElementById("sourceFilter").value;
+
+        fetch(
+          `/api/jobs?title=${title}&company=${company}&location=${location}&source=${source}`
+        )
+          .then((response) => response.json())
+          .then((jobs) => {
+            const jobList = document.getElementById("jobList");
+            jobList.innerHTML = "";
+            jobs.forEach((job) => {
+              const li = document.createElement("li");
+              li.className = "job-item";
+              li.innerHTML = `
+                            <div class="job-title">${job.title}</div>
+                            <div>${job.company} - ${job.location}</div>
+                            <div>Fonte: ${job.source}</div>
+                            <a href="${job.url}" target="_blank">Ver vaga</a>
+                        `;
+              jobList.appendChild(li);
+            });
+          })
+          .catch((error) => console.error("Erro ao buscar vagas:", error));
+      }
+
+      // Carregar vagas ao iniciar a página
+      applyFilters();
+    </script>
+  </body>
+</html>
