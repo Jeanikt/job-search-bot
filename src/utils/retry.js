@@ -1,4 +1,4 @@
-async function retry(fn, maxRetries = 3, delay = 5000) {
+async function retry(fn, maxRetries = 5, delay = 10000) {
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();

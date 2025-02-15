@@ -9,7 +9,7 @@ function filterJobs(jobs, filters) {
     if (filters.location && !job.location.toLowerCase().includes(filters.location.toLowerCase())) {
       return false;
     }
-    if (filters.source && job.source !== filters.source) {
+    if (filters.source && job.source.toLowerCase() !== filters.source.toLowerCase()) {
       return false;
     }
     return true;
