@@ -1,12 +1,14 @@
 const puppeteer = require('puppeteer');
 const searchTerms = require('../searchTerms');
+const { getRandomUserAgent } = require('../utils/userAgents');
 
 async function searchJobs() {
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage']
   });
   const page = await browser.newPage();
+  await page.setUserAgent(getRandomUserAgent());
   let allJobs = [];
 
   try {
@@ -15,10 +17,14 @@ async function searchJobs() {
       const encodedTerm = encodeURIComponent(term);
       await page.goto(`https://www.linkedin.com/jobs/search/?keywords=${encodedTerm}&location=Brasil&f_WT=2`, { 
         waitUntil: 'networkidle2',
-        timeout: 30000
+        timeout: 60000
       });
       
-      await page.waitForSelector('.jobs-search__results-list', { timeout: 30000 });
+      await page.waitForSelector('.jobs-search__results-list', { timeout: 60000 });
+      
+      // Scroll para carregar mais resultados
+      await autoScroll(page);
+
       const jobListings = await page.$$('.jobs-search__results-list > li');
 
       for (const listing of jobListings) {
@@ -38,7 +44,7 @@ async function searchJobs() {
         }
       }
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await randomDelay();
     }
   } catch (error) {
     console.error('Erro ao buscar vagas no LinkedIn:', error);
@@ -47,6 +53,29 @@ async function searchJobs() {
   }
 
   return allJobs;
+}
+
+async function autoScroll(page) {
+  await page.evaluate(async () => {
+    await new Promise((resolve) => {
+      let totalHeight = 0;
+      const distance = 100;
+      const timer = setInterval(() => {
+        const scrollHeight = document.body.scrollHeight;
+        window.scrollBy(0, distance);
+        totalHeight += distance;
+
+        if (totalHeight >= scrollHeight) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, 100);
+    });
+  });
+}
+
+function randomDelay(min = 3000, max = 7000) {
+  return new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * (max - min + 1) + min)));
 }
 
 module.exports = { searchJobs };

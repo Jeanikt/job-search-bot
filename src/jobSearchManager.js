@@ -12,19 +12,28 @@ async function runJobSearch(filters = {}) {
     console.log('Iniciando busca de vagas...');
     console.log('Filtros aplicados:', filters);
 
-    const [indeedJobs, linkedinJobs, nerdinJobs, glassdoorJobs] = await Promise.all([
-      retry(() => indeed.searchJobs()),
-      retry(() => linkedin.searchJobs()),
-      retry(() => nerdin.searchJobs()),
-      retry(() => glassdoor.searchJobs())
-    ]);
+    const jobSearchers = [
+      { name: 'Indeed', searcher: indeed },
+      { name: 'LinkedIn', searcher: linkedin },
+      { name: 'Nerdin', searcher: nerdin },
+      { name: 'Glassdoor', searcher: glassdoor }
+    ];
 
-    console.log(`Encontradas ${indeedJobs.length} vagas no Indeed`);
-    console.log(`Encontradas ${linkedinJobs.length} vagas no LinkedIn`);
-    console.log(`Encontradas ${nerdinJobs.length} vagas no Nerdin`);
-    console.log(`Encontradas ${glassdoorJobs.length} vagas no Glassdoor`);
+    const jobResults = await Promise.allSettled(
+      jobSearchers.map(({ name, searcher }) =>
+        retry(() => searcher.searchJobs()).catch(error => {
+          console.error(`Erro ao buscar vagas no ${name}:`, error);
+          return [];
+        })
+      )
+    );
 
-    const allJobs = [...indeedJobs, ...linkedinJobs, ...nerdinJobs, ...glassdoorJobs];
+    const allJobs = jobResults.flatMap((result, index) => {
+      const jobs = result.status === 'fulfilled' ? result.value : [];
+      console.log(`Encontradas ${jobs.length} vagas no ${jobSearchers[index].name}`);
+      return jobs;
+    });
+
     console.log(`Total de vagas encontradas: ${allJobs.length}`);
 
     let filteredJobs = filterJobs(allJobs, filters);
