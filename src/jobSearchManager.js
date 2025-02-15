@@ -7,10 +7,15 @@ const jobCache = require('./jobCache');
 const { filterJobs } = require('./jobFilter');
 const { retry } = require('./utils/retry');
 
-async function runJobSearch(filters = {}) {
+async function runJobSearch(filters = {}, maxJobs = Infinity) {
   try {
     console.log('Iniciando busca de vagas...');
     console.log('Filtros aplicados:', filters);
+
+    // Definir localização padrão como Brasil se não for especificada
+    if (!filters.location) {
+      filters.location = 'Brasil';
+    }
 
     const jobSearchers = [
       { name: 'Indeed', searcher: indeed },
@@ -21,7 +26,7 @@ async function runJobSearch(filters = {}) {
 
     const jobResults = await Promise.allSettled(
       jobSearchers.map(({ name, searcher }) =>
-        retry(() => searcher.searchJobs()).catch(error => {
+        retry(() => searcher.searchJobs(filters)).catch(error => {
           console.error(`Erro ao buscar vagas no ${name}:`, error);
           return [];
         })
@@ -45,6 +50,7 @@ async function runJobSearch(filters = {}) {
       if (await jobCache.isJobNew(job.id)) {
         newJobs.push(job);
         await jobCache.markJobAsSeen(job.id);
+        if (newJobs.length >= maxJobs) break;
       }
     }
 
@@ -60,7 +66,7 @@ async function runJobSearch(filters = {}) {
     // Limpa vagas antigas do cache (mantém últimos 30 dias)
     await jobCache.cleanOldJobs(30);
 
-    return filteredJobs;
+    return filteredJobs.slice(0, maxJobs);
   } catch (error) {
     console.error('Erro durante a busca de vagas:', error);
     throw error;

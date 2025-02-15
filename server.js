@@ -56,12 +56,17 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *         name: location
  *         schema:
  *           type: string
- *         description: Filtro por localização
+ *         description: Filtro por localização (padrão é Brasil)
  *       - in: query
  *         name: source
  *         schema:
  *           type: string
  *         description: Filtro por fonte da vaga (ex: LinkedIn, Indeed, etc.)
+ *       - in: query
+ *         name: maxJobs
+ *         schema:
+ *           type: integer
+ *         description: Número máximo de vagas a retornar
  *     responses:
  *       200:
  *         description: Lista de vagas encontradas
@@ -90,7 +95,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/api/jobs', async (req, res) => {
   try {
     const filters = req.query;
-    const jobs = await runJobSearch(filters);
+    const maxJobs = parseInt(req.query.maxJobs, 10) || Infinity;
+    if (!filters.location) {
+      filters.location = 'Brasil';
+    }
+    const jobs = await runJobSearch(filters, maxJobs);
     res.json(jobs);
   } catch (error) {
     console.error('Erro ao buscar vagas:', error);
@@ -139,6 +148,8 @@ app.get('/api/jobs', async (req, res) => {
  *                     type: string
  *                   source:
  *                     type: string
+ *               maxJobs:
+ *                 type: integer
  *     responses:
  *       200:
  *         description: Lista de vagas filtradas
@@ -165,30 +176,20 @@ app.get('/api/jobs', async (req, res) => {
  *         description: Dados inválidos fornecidos
  */
 app.post('/api/filter', (req, res) => {
-  const { jobs, filters } = req.body;
+  const { jobs, filters, maxJobs = Infinity } = req.body;
 
   if (!Array.isArray(jobs) || typeof filters !== 'object') {
     return res.status(400).json({ error: 'Dados inválidos fornecidos' });
   }
 
-  const filteredJobs = filterJobs(jobs, filters);
+  if (!filters.location) {
+    filters.location = 'Brasil';
+  }
+
+  const filteredJobs = filterJobs(jobs, filters).slice(0, maxJobs);
   res.json(filteredJobs);
 });
 
-/**
- * @swagger
- * /:
- *   get:
- *     summary: Página inicial
- *     description: Retorna a página HTML inicial da aplicação
- *     responses:
- *       200:
- *         description: Página HTML
- *         content:
- *           text/html:
- *             schema:
- *               type: string
- */
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
