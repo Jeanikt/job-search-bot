@@ -2,17 +2,23 @@ const puppeteer = require('puppeteer');
 const searchTerms = require('../searchTerms');
 
 async function searchJobs() {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const page = await browser.newPage();
   let allJobs = [];
 
   try {
-for (const term of searchTerms) {
-    console.log(`Searching LinkedIn for: ${term}`);
-    const encodedTerm = encodeURIComponent(term);
-    await page.goto(`https://www.linkedin.com/jobs/search/?keywords=${encodedTerm}&location=Brasil&f_WT=2`);
-      await page.waitForSelector('.jobs-search__results-list');
+    for (const term of searchTerms) {
+      console.log(`Buscando no LinkedIn por: ${term}`);
+      const encodedTerm = encodeURIComponent(term);
+      await page.goto(`https://www.linkedin.com/jobs/search/?keywords=${encodedTerm}&location=Brasil&f_WT=2`, { 
+        waitUntil: 'networkidle2',
+        timeout: 30000
+      });
       
+      await page.waitForSelector('.jobs-search__results-list', { timeout: 30000 });
       const jobListings = await page.$$('.jobs-search__results-list > li');
 
       for (const listing of jobListings) {
@@ -32,11 +38,10 @@ for (const term of searchTerms) {
         }
       }
 
-      // Aguarde um pouco entre as pesquisas para evitar sobrecarga no servidor
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   } catch (error) {
-    console.error('Error searching LinkedIn jobs:', error);
+    console.error('Erro ao buscar vagas no LinkedIn:', error);
   } finally {
     await browser.close();
   }

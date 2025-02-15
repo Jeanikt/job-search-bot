@@ -3,11 +3,25 @@ const jobSearchManager = require('./src/jobSearchManager');
 
 const SEARCH_INTERVAL = 3600000; // 1 hora em milissegundos
 
+function parseFilters() {
+  const filters = {};
+  process.argv.slice(2).forEach(arg => {
+    const [key, value] = arg.split('=');
+    if (key && value) {
+      filters[key] = value;
+    }
+  });
+  return filters;
+}
+
 async function runContinuousJobSearch() {
+  const filters = parseFilters();
+  console.log('Filtros aplicados:', filters);
+
   while (true) {
     try {
       console.log('Iniciando busca de vagas...');
-      await jobSearchManager.runJobSearch();
+      await jobSearchManager.runJobSearch(filters);
       console.log(`Busca concluída. Aguardando ${SEARCH_INTERVAL / 60000} minutos para a próxima busca.`);
     } catch (error) {
       console.error('Erro durante a busca de vagas:', error);

@@ -2,17 +2,23 @@ const puppeteer = require('puppeteer');
 const searchTerms = require('../searchTerms');
 
 async function searchJobs() {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const page = await browser.newPage();
   let allJobs = [];
 
   try {
     for (const term of searchTerms) {
-      console.log(`Searching Glassdoor for: ${term}`);
+      console.log(`Buscando no Glassdoor por: ${term}`);
       const encodedTerm = encodeURIComponent(term);
-      await page.goto(`https://www.glassdoor.com.br/Vaga/brasil-${encodedTerm}-vagas-SRCH_IL.0,6_IN36_KO7,${encodedTerm.length + 7}.htm?remoteWorkType=REMOTE`);
+      await page.goto(`https://www.glassdoor.com.br/Vaga/brasil-${encodedTerm}-vagas-SRCH_IL.0,6_IN36_KO7,${encodedTerm.length + 7}.htm?remoteWorkType=REMOTE`, { 
+        waitUntil: 'networkidle2',
+        timeout: 30000
+      });
       
-      await page.waitForSelector('.jobCard');
+      await page.waitForSelector('.jobCard', { timeout: 30000 });
       const jobListings = await page.$$('.jobCard');
 
       for (const listing of jobListings) {
@@ -35,7 +41,7 @@ async function searchJobs() {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   } catch (error) {
-    console.error('Error searching Glassdoor jobs:', error);
+    console.error('Erro ao buscar vagas no Glassdoor:', error);
   } finally {
     await browser.close();
   }

@@ -46,3 +46,19 @@ async function cleanOldJobs(daysToKeep = 30) {
 }
 
 module.exports = { isJobNew, markJobAsSeen, cleanOldJobs };
+
+async function cleanOldJobs(daysToKeep = 30) {
+  const cache = await loadCache();
+  const now = Date.now();
+  const msToKeep = daysToKeep * 24 * 60 * 60 * 1000;
+
+  for (const [jobId, timestamp] of Object.entries(cache)) {
+    if (now - timestamp > msToKeep) {
+      delete cache[jobId];
+    }
+  }
+
+  await saveCache(cache);
+}
+
+module.exports = { isJobNew, markJobAsSeen, cleanOldJobs };
