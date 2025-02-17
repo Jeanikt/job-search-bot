@@ -12,7 +12,6 @@ async function runJobSearch(filters = {}, maxJobs = Infinity) {
     console.log('Iniciando busca de vagas...');
     console.log('Filtros aplicados:', filters);
 
-    // Definir localização padrão como Brasil se não for especificada
     if (!filters.location) {
       filters.location = 'Brasil';
     }
@@ -24,6 +23,7 @@ async function runJobSearch(filters = {}, maxJobs = Infinity) {
       { name: 'Glassdoor', searcher: glassdoor }
     ];
 
+    // Busca paralela para otimizar o tempo de resposta
     const jobResults = await Promise.allSettled(
       jobSearchers.map(({ name, searcher }) =>
         retry(() => searcher.searchJobs(filters)).catch(error => {
@@ -63,7 +63,6 @@ async function runJobSearch(filters = {}, maxJobs = Infinity) {
       console.log('Nenhuma nova vaga encontrada. E-mail não enviado.');
     }
 
-    // Limpa vagas antigas do cache (mantém últimos 30 dias)
     await jobCache.cleanOldJobs(30);
 
     return filteredJobs.slice(0, maxJobs);
