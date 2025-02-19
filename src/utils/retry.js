@@ -1,11 +1,17 @@
-async function retry(fn, maxRetries = 5, delay = 10000) {
-  for (let i = 0; i < maxRetries; i++) {
+const DEFAULT_RETRY_COUNT = 3;
+const DEFAULT_RETRY_DELAY = 5000;
+
+async function retry(fn, options = {}) {
+  const retryCount = options.retryCount || DEFAULT_RETRY_COUNT;
+  const retryDelay = options.retryDelay || DEFAULT_RETRY_DELAY;
+
+  for (let attempt = 1; attempt <= retryCount; attempt++) {
     try {
       return await fn();
     } catch (error) {
-      if (i === maxRetries - 1) throw error;
-      console.log(`Tentativa ${i + 1} falhou. Tentando novamente em ${delay / 1000} segundos...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      console.log(`Tentativa ${attempt} falhou. Erro: ${error.message}`);
+      if (attempt === retryCount) throw error;
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
   }
 }
