@@ -18,7 +18,7 @@ Este projeto automatiza a busca de vagas de emprego em diversas plataformas, inc
 ## Instalação
 1. Clone o repositório:
    ```sh
-   git clone https://github.com/seu-usuario/job-search-automation.git
+   git clone https://github.com/Jeanikt/job-search-automation.git
    cd job-search-automation
    ```
 2. Instale as dependências:
