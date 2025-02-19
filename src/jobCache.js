@@ -8,10 +8,7 @@ async function loadCache() {
     const data = await fs.readFile(CACHE_FILE, 'utf8');
     return JSON.parse(data);
   } catch (error) {
-    if (error.code === 'ENOENT') {
-      // Se o arquivo não existir, retorna um objeto vazio
-      return {};
-    }
+    if (error.code === 'ENOENT') return {};
     throw error;
   }
 }
@@ -37,25 +34,7 @@ async function cleanOldJobs(daysToKeep = 30) {
   const msToKeep = daysToKeep * 24 * 60 * 60 * 1000;
 
   for (const [jobId, timestamp] of Object.entries(cache)) {
-    if (now - timestamp > msToKeep) {
-      delete cache[jobId];
-    }
-  }
-
-  await saveCache(cache);
-}
-
-module.exports = { isJobNew, markJobAsSeen, cleanOldJobs };
-
-async function cleanOldJobs(daysToKeep = 30) {
-  const cache = await loadCache();
-  const now = Date.now();
-  const msToKeep = daysToKeep * 24 * 60 * 60 * 1000;
-
-  for (const [jobId, timestamp] of Object.entries(cache)) {
-    if (now - timestamp > msToKeep) {
-      delete cache[jobId];
-    }
+    if (now - timestamp > msToKeep) delete cache[jobId];
   }
 
   await saveCache(cache);
