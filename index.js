@@ -1,72 +1,48 @@
-const jobSearchers = require('./jobSearchers');
-const emailSender = require('./emailSender');
-const jobCache = require('./jobCache');
-const { filterJobs } = require('./jobFilter');
-const { retry } = require('./utils/retry');
+require('dotenv').config();
+const jobSearchManager = require('./src/jobSearchManager');
 
-async function runJobSearch(filters = {}, maxJobs = Infinity) {
-  console.log('Iniciando busca de vagas...');
-  console.log('Filtros aplicados:', filters);
+const SEARCH_INTERVAL = 3600000;
 
-  filters.location = filters.location || 'Brasil';
+function parseFilters() {
+  const filters = {};
+  let maxJobs = Infinity;
+  process.argv.slice(2).forEach(arg => {
+    const [key, value] = arg.split('=');
+    if (key && value) {
+      if (key === 'maxJobs') {
+        maxJobs = parseInt(value, 10);
+      } else {
+        filters[key] = value;
+      }
+    }
+  });
+  return { filters, maxJobs };
+}
 
+async function runJobSearch(filters, maxJobs) {
   try {
-    const allJobs = await searchAllJobs(filters);
-    console.log(`Total de vagas encontradas: ${allJobs.length}`);
-
-    const filteredJobs = filterJobs(allJobs, filters);
-    console.log(`Vagas após aplicação de filtros: ${filteredJobs.length}`);
-
-    const newJobs = await processNewJobs(filteredJobs, maxJobs);
-    console.log(`Novas vagas encontradas: ${newJobs.length}`);
-
-    await handleEmailSending(newJobs);
-    await jobCache.cleanOldJobs(30);
-
-    return filteredJobs.slice(0, maxJobs);
+    console.log('Iniciando busca de vagas...');
+    await jobSearchManager.runJobSearch(filters, maxJobs);
+    console.log(`Busca concluída. Aguardando ${SEARCH_INTERVAL / 60000} minutos para a próxima busca.`);
   } catch (error) {
     console.error('Erro durante a busca de vagas:', error);
-    throw error;
   }
 }
 
-async function searchAllJobs(filters) {
-  const jobResults = await Promise.allSettled(
-    Object.entries(jobSearchers).map(([name, searcher]) =>
-      retry(() => searcher.searchJobs(filters))
-        .then(jobs => {
-          console.log(`Encontradas ${jobs.length} vagas no ${name}`);
-          return jobs;
-        })
-        .catch(error => {
-          console.error(`Erro ao buscar vagas no ${name}:`, error);
-          return [];
-        })
-    )
-  );
+async function runContinuousJobSearch() {
+  const { filters, maxJobs } = parseFilters();
+  console.log('Filtros aplicados:', filters);
+  console.log('Número máximo de vagas:', maxJobs === Infinity ? 'Sem limite' : maxJobs);
 
-  return jobResults.flatMap(result => result.status === 'fulfilled' ? result.value : []);
-}
-
-async function processNewJobs(jobs, maxJobs) {
-  const newJobs = [];
-  for (const job of jobs) {
-    if (await jobCache.isJobNew(job.id)) {
-      newJobs.push(job);
-      await jobCache.markJobAsSeen(job.id);
-      if (newJobs.length >= maxJobs) break;
-    }
-  }
-  return newJobs;
-}
-
-async function handleEmailSending(newJobs) {
-  if (newJobs.length > 0) {
-    await emailSender.sendJobsEmail(newJobs);
-    console.log(`E-mail enviado com ${newJobs.length} novas vagas.`);
-  } else {
-    console.log('Nenhuma nova vaga encontrada. E-mail não enviado.');
+  while (true) {
+    await runJobSearch(filters, maxJobs);
+    await new Promise(resolve => setTimeout(resolve, SEARCH_INTERVAL));
   }
 }
 
-module.exports = { runJobSearch };
+console.log('Bot de busca de vagas está rodando continuamente. Pressione Ctrl+C para sair.');
+
+runContinuousJobSearch().catch(error => {
+  console.error('Erro fatal no loop principal:', error);
+  process.exit(1);
+});
