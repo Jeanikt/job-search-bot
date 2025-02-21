@@ -1,7 +1,18 @@
 require('dotenv').config();
 const jobSearchManager = require('./src/jobSearchManager');
+const glassdoor = require('./src/jobSearchers/glassdoor');
+const indeed = require('./src/jobSearchers/indeed');
+const linkedin = require('./src/jobSearchers/linkedin');
+const nerdin = require('./src/jobSearchers/nerdin');
 
-const SEARCH_INTERVAL = 3600000;
+const jobSearchers = {
+  glassdoor,
+  indeed,
+  linkedin,
+  nerdin
+};
+
+const SEARCH_INTERVAL = 3600000; // 1 hora
 
 function parseFilters() {
   const filters = {};
@@ -41,7 +52,6 @@ async function runContinuousJobSearch() {
 }
 
 console.log('Bot de busca de vagas está rodando continuamente. Pressione Ctrl+C para sair.');
-
 runContinuousJobSearch().catch(error => {
   console.error('Erro fatal no loop principal:', error);
   process.exit(1);

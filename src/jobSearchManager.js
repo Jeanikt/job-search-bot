@@ -1,4 +1,15 @@
-const jobSearchers = require('./jobSearchers');
+const glassdoor = require('./jobSearchers/glassdoor');
+const indeed = require('./jobSearchers/indeed');
+const linkedin = require('./jobSearchers/linkedin');
+const nerdin = require('./jobSearchers/nerdin');
+
+const jobSearchers = {
+  glassdoor,
+  indeed,
+  linkedin,
+  nerdin
+};
+
 const emailSender = require('./emailSender');
 const jobCache = require('./jobCache');
 const { filterJobs } = require('./jobFilter');
